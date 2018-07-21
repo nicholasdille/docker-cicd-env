@@ -1,9 +1,17 @@
 version: '2.0'
+volumes:
+        registry-data:
+        gitea-data:
+        go-server-data:
+        influxdb-data:
+        grafana-data:
 services:
         registry:
                 image: registry
                 ports:
                         - 5000:5000
+                volumes:
+                        - "registry-data:/var/lib/registry"
         web:
                 image: konradkleine/docker-registry-frontend:v2
                 ports:
@@ -17,11 +25,15 @@ services:
                 image: gitea/gitea
                 ports:
                         - 3000:3000
+                volumes:
+                        - "gitea-data:/data"
         go-server:
                 image: gocd/gocd-server:v18.6.0
                 ports:
                         - 8153:8153
                         - 8154:8154
+                volumes:
+                        - "go-server-data:/godata"
         dind:
                 build:
                         context: ./dind
@@ -49,12 +61,16 @@ services:
                         INFLUXDB_READ_PASSWORD: read
                         INFLUXDB_WRITE_USER: write
                         INFLUXDB_WRITE_PASSWORD: write
+                volumes:
+                        - "influxdb-data:/var/lib/influxdb"
         grafana:
                 image: grafana/grafana
                 ports:
                         - 3001:3000
                 depends_on:
                         - influxdb
+                volumes:
+                        - "grafana-data:/var/lib/grafana"
         telegraf:
                 build:
                         context: ./telegraf
