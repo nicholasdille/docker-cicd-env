@@ -1,0 +1,21 @@
+version: '2.0'
+services:
+        web:
+                ports:
+                        - 8080:80
+        gitea:
+                ports:
+                        - 3000:3000
+        go-server:
+                ports:
+                        - 8153:8153
+                        - 8154:8154
+        drone:
+                ports:
+                        - 8000:8000
+        influxdb:
+                ports:
+                        - 8086:8086
+        grafana:
+                ports:
+                        - 3001:3000
