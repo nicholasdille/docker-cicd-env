@@ -28,8 +28,6 @@ services:
                         - "registry-data:/var/lib/registry"
         web:
                 image: konradkleine/docker-registry-frontend:v2
-                ports:
-                        - 8080:80
                 depends_on:
                         - registry
                 environment:
@@ -40,15 +38,11 @@ services:
                 environment:
                         - SSH_PORT=2222
                 ports:
-                        - 3000:3000
                         - "2222:22"
                 volumes:
                         - "gitea-data:/data"
         go-server:
                 image: gocd/gocd-server:v18.8.0
-                ports:
-                        - 8153:8153
-                        - 8154:8154
                 volumes:
                         - "go-server-data:/godata"
                 depends_on:
@@ -74,8 +68,6 @@ services:
                         DOCKER_HOST: tcp://dind:2375
         drone:
                 image: drone/drone:0.8
-                ports:
-                        - 8000:8000
                 depends_on:
                         - gitea
                 volumes:
@@ -98,8 +90,6 @@ services:
                         - DRONE_SECRET=mydronesecret
         influxdb:
                 image: influxdb:alpine
-                ports:
-                        - 8086:8086
                 environment:
                         INFLUXDB_DB: demo
                         INFLUXDB_ADMIN_USER: admin
@@ -112,8 +102,6 @@ services:
                         - "influxdb-data:/var/lib/influxdb"
         grafana:
                 image: grafana/grafana
-                ports:
-                        - 3001:3000
                 depends_on:
                         - influxdb
                 volumes:
