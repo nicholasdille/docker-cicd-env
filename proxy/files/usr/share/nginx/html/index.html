@@ -1,0 +1,24 @@
+<html>
+<head>
+<title>Services</title>
+<script>
+function handleOnLoadEvent() {
+    document.getElementById('registry').href = window.location.protocol + "//registry." + window.location.host
+    document.getElementById('gitea').href = window.location.protocol + "//gitea." + window.location.host
+    document.getElementById('gocd').href = window.location.protocol + "//gocd." + window.location.host
+    document.getElementById('drone').href = window.location.protocol + "//drone." + window.location.host
+    document.getElementById('influxdb').href = window.location.protocol + "//influxdb." + window.location.host
+    document.getElementById('grafana').href = window.location.protocol + "//grafana." + window.location.host
+}
+</script>
+</head>
+<body onload="handleOnLoadEvent()">
+<h1>Services</h1>
+<a target="_blank" id="registry" href="http://registry.example.com">Registry</a><br/>
+<a target="_blank" id="gitea" href="http://gtiea.example.com">gitea</a><br/>
+<a target="_blank" id="gocd" href="http://gocd.example.com">GoCD</a><br/>
+<a target="_blank" id="drone" href="http://drone.example.com">Drone</a><br/>
+<a target="_blank" id="influxdb" href="http://influxdb.example.com">InfluxDB</a><br/>
+<a target="_blank" id="grafana" href="http://grafana.example.com">Grafana</a><br/>
+</body>
+</html

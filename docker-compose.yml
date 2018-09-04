@@ -3,9 +3,23 @@ volumes:
         registry-data:
         gitea-data:
         go-server-data:
+        drone-data:
         influxdb-data:
         grafana-data:
 services:
+        proxy:
+                build:
+                        context: ./proxy
+                image: proxy
+                depends_on:
+                        - web
+                        - gitea
+                        - go-server
+                        - drone
+                        - influxdb
+                        - grafana
+                ports:
+                        - 80:80
         registry:
                 image: registry
                 ports:
@@ -23,9 +37,11 @@ services:
                         ENV_DOCKER_REGISTRY_PORT: 5000
         gitea:
                 image: gitea/gitea
+                environment:
+                        - SSH_PORT=2222
                 ports:
                         - 3000:3000
-                        - 22:22
+                        - 2222:22
                 volumes:
                         - "gitea-data:/data"
         go-server:
@@ -56,6 +72,30 @@ services:
                 environment:
                         GO_SERVER_URL: https://go-server:8154/go
                         DOCKER_HOST: tcp://dind:2375
+        drone:
+                image: drone/drone:0.8
+                ports:
+                        - 8000:8000
+                depends_on:
+                        - gitea
+                volumes:
+                        - drone-data:/var/lib/drone/
+                environment:
+                        - DRONE_OPEN=true
+                        - DRONE_HOST=http://127.0.0.1
+                        - DRONE_GITEA=true
+                        - DRONE_GITEA_URL=http://gitea:3000
+                        - DRONE_SECRET=mydronesecret
+        drone-agent:
+                image: drone/agent:0.8
+                command: agent
+                depends_on:
+                        - drone
+                volumes:
+                        - /var/run/docker.sock:/var/run/docker.sock
+                environment:
+                        - DRONE_SERVER=drone:9000
+                        - DRONE_SECRET=mydronesecret
         influxdb:
                 image: influxdb:alpine
                 ports:
