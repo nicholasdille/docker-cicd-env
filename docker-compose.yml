@@ -56,14 +56,14 @@ services:
         dind:
                 build:
                         context: ./dind
-                image: demo-dind
+                image: dind
                 privileged: true
                 depends_on:
                         - registry
         go-agent:
                 build:
                         context: ./go-agent
-                image: demo-go-agent
+                image: go-agent
                 depends_on:
                         - go-server
                         - gitea
@@ -121,7 +121,7 @@ services:
         telegraf:
                 build:
                         context: ./telegraf
-                image: demo-telegraf
+                image: telegraf
                 depends_on:
                         - influxdb
                 volumes:
