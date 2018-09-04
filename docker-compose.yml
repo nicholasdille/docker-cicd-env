@@ -45,7 +45,7 @@ services:
                 volumes:
                         - "gitea-data:/data"
         go-server:
-                image: gocd/gocd-server:v18.6.0
+                image: gocd/gocd-server:v18.8.0
                 ports:
                         - 8153:8153
                         - 8154:8154
