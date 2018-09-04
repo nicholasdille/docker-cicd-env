@@ -41,7 +41,7 @@ services:
                         - SSH_PORT=2222
                 ports:
                         - 3000:3000
-                        - 2222:22
+                        - "2222:22"
                 volumes:
                         - "gitea-data:/data"
         go-server:
