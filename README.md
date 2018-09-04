@@ -6,6 +6,8 @@ The `docker-compose.yml` deploys a demo environment for testing and learning con
 - gitea
 - GoCD server
 - GoCD agent with Docker-in-Docker sidekick
+- Drone server
+- Drone agent with mapped Docker socket
 - InfluxDB
 - Grafana
 
@@ -18,12 +20,19 @@ docker-compose build
 docker-compose up -d
 ```
 
-The sevices will then be available under the following URLs:
+The sevices will then be available behind a reverse proxy on port 80.
+
+If required, all services are made available on a dedicated port after running:
+
+```
+docker-compose --file docker-compose.yml --file docker-compose.expose.yml up -d
+```
 
 - Docker registry: `localhost:5000`
 - Docker registry frontend: `localhost:8080`
 - gitea: `localhost:3000`
 - GoCD server: `localhost:8153`
+- Drone: `localhost:8000`
 - Grafana: `localhost:3001`
 
 The GoCD agent will be able to access the registry under the name `registry:5000` and the Docker-in-Docker sidekick under `dind:2375`.
