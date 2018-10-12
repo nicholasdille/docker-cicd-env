@@ -8,8 +8,7 @@ volumes:
         grafana-data:
 services:
         proxy:
-                build:
-                        context: ./proxy
+                build: github.com/nicholasdille/docker-ci-cd-demo#master:proxy
                 image: proxy
                 depends_on:
                         - web
@@ -48,15 +47,13 @@ services:
                 depends_on:
                         - gitea
         dind:
-                build:
-                        context: ./dind
+                build: github.com/nicholasdille/docker-ci-cd-demo#master:dind
                 image: dind
                 privileged: true
                 depends_on:
                         - registry
         go-agent:
-                build:
-                        context: ./go-agent
+                build: github.com/nicholasdille/docker-ci-cd-demo#master:go-agent
                 image: go-agent
                 depends_on:
                         - go-server
@@ -107,8 +104,7 @@ services:
                 volumes:
                         - "grafana-data:/var/lib/grafana"
         telegraf:
-                build:
-                        context: ./telegraf
+                build: github.com/nicholasdille/docker-ci-cd-demo#master:telegraf
                 image: telegraf
                 depends_on:
                         - influxdb
