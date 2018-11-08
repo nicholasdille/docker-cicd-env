@@ -15,16 +15,22 @@ The `docker-compose.yml` deploys a demo environment for testing and learning con
 
 The following commands build and deploy the environment:
 
-```
+```bash
 docker-compose build
 docker-compose up -d
 ```
 
-The sevices will then be available behind a reverse proxy on port 80.
+The sevices will then be available behind a reverse proxy on port 80 with the following names:
+
+- Docker registry: registry.example.com
+- Docker registry frontend: hub.example.com
+- GoCD server: gocd.example.com
+- Drone server: ci.example.com
+- Grafana: grafana.example.com
 
 If required, all services are made available on a dedicated port after running:
 
-```
+```bash
 docker-compose --file docker-compose.yml --file docker-compose.expose.yml up -d
 ```
 

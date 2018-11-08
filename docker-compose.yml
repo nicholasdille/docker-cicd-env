@@ -6,6 +6,9 @@ volumes:
         drone-data:
         influxdb-data:
         grafana-data:
+networks:
+        public:
+                external: true
 services:
         proxy:
                 image: traefik:1.7
@@ -18,21 +21,26 @@ services:
                         - grafana
                 ports:
                         - 80:80
-                        - 443:443
                 volumes:
                         - /var/run/docker.sock:/var/run/docker.sock
                         - ./traefik/traefik.toml:/traefik.toml
+                networks:
+                        - public
         registry:
                 image: registry
                 ports:
                         - 5000:5000
                 volumes:
                         - "registry-data:/var/lib/registry"
+                networks:
+                        - public
+                        - default
                 labels:
-                        - "traefik.enable=true"
-                        - "traefik.basic.frontend.rule=Host:registry.dille.io"
-                        - "traefik.basic.port=80"
-                        - "traefik.basic.protocol=http"
+                        traefik.docker.network: public
+                        traefik.enable: true
+                        traefik.frontend.rule: Host:registry.example.com
+                        traefik.port: 80
+                        traefik.protocol: http
         web:
                 image: konradkleine/docker-registry-frontend:v2
                 depends_on:
@@ -40,11 +48,15 @@ services:
                 environment:
                         ENV_DOCKER_REGISTRY_HOST: registry
                         ENV_DOCKER_REGISTRY_PORT: 5000
+                networks:
+                        - public
+                        - default
                 labels:
-                        - "traefik.enable=true"
-                        - "traefik.basic.frontend.rule=Host:hub.dille.io"
-                        - "traefik.basic.port=80"
-                        - "traefik.basic.protocol=http"
+                        traefik.docker.network: public
+                        traefik.enable: true
+                        traefik.frontend.rule: Host:hub.example.com
+                        traefik.port: 80
+                        traefik.protocol: http
         gitea:
                 image: gitea/gitea
                 environment:
@@ -53,22 +65,30 @@ services:
                         - "2222:22"
                 volumes:
                         - "gitea-data:/data"
+                networks:
+                        - public
+                        - default
                 labels:
-                        - "traefik.enable=true"
-                        - "traefik.basic.frontend.rule=Host:git.dille.io"
-                        - "traefik.basic.port=80"
-                        - "traefik.basic.protocol=http"
+                        traefik.docker.network: public
+                        traefik.enable: true
+                        traefik.frontend.rule: Host:git.example.com
+                        traefik.port: 80
+                        traefik.protocol: http
         go-server:
                 image: gocd/gocd-server:v18.8.0
                 volumes:
                         - "go-server-data:/godata"
                 depends_on:
                         - gitea
+                networks:
+                        - public
+                        - default
                 labels:
-                        - "traefik.enable=true"
-                        - "traefik.basic.frontend.rule=Host:gocd.dille.io"
-                        - "traefik.basic.port=80"
-                        - "traefik.basic.protocol=http"
+                        traefik.docker.network: public
+                        traefik.enable: true
+                        traefik.frontend.rule: Host:gocd.example.com
+                        traefik.port: 80
+                        traefik.protocol: http
         dind:
                 build: github.com/nicholasdille/docker-ci-cd-demo#master:dind
                 image: dind
@@ -98,11 +118,15 @@ services:
                         - DRONE_GITEA=true
                         - DRONE_GITEA_URL=http://gitea:3000
                         - DRONE_SECRET=mydronesecret
+                networks:
+                        - public
+                        - default
                 labels:
-                        - "traefik.enable=true"
-                        - "traefik.basic.frontend.rule=Host:ci.dille.io"
-                        - "traefik.basic.port=80"
-                        - "traefik.basic.protocol=http"
+                        traefik.docker.network: public
+                        traefik.enable: true
+                        traefik.frontend.rule: Host:ci.example.com
+                        traefik.port: 80
+                        traefik.protocol: http
         drone-agent:
                 image: drone/agent:0.8
                 command: agent
@@ -131,11 +155,15 @@ services:
                         - influxdb
                 volumes:
                         - "grafana-data:/var/lib/grafana"
+                networks:
+                        - public
+                        - default
                 labels:
-                        - "traefik.enable=true"
-                        - "traefik.basic.frontend.rule=Host:grafana.dille.io"
-                        - "traefik.basic.port=80"
-                        - "traefik.basic.protocol=http"
+                        traefik.docker.network: public
+                        traefik.enable: true
+                        traefik.frontend.rule: Host:grafana.example.com
+                        traefik.port: 80
+                        traefik.protocol: http
         telegraf:
                 build: github.com/nicholasdille/docker-ci-cd-demo#master:telegraf
                 image: telegraf
