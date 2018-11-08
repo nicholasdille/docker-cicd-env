@@ -9,13 +9,17 @@ volumes:
 
 configs:
   telegraf-config:
-    file: https://github.com/nicholasdille/docker-cicd-env/raw/master/telegraf/telegraf.conf
+    file: https://github.com/nicholasdille/docker-cicd-env/raw/master/telegraf.conf
+  traefik-config:
+    file: https://github.com/nicholasdille/docker-cicd-env/raw/master/traefik.toml
 
 services:
 
   proxy:
     image: traefik:1.7
-    command: ""
+    configs:
+      - source: traefik-config
+        target: /traefik.toml
     depends_on:
       - web
       - gitea
