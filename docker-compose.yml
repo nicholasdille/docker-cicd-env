@@ -32,7 +32,7 @@ services:
     labels:
       traefik.docker.network: public
       traefik.enable: true
-      traefik.frontend.rule: HostRegexp:traefik.{domain:[a-z]+}
+      traefik.frontend.rule: "HostRegexp: traefik.{domain:[a-z.]+}"
       traefik.port: 8080
       traefik.protocol: http
 
@@ -48,7 +48,7 @@ services:
     labels:
       traefik.docker.network: public
       traefik.enable: true
-      traefik.frontend.rule: HostRegexp:registry.{domain:[a-z]+}
+      traefik.frontend.rule: "HostRegexp: registry.{domain:[a-z.]+}"
       traefik.port: 80
       traefik.protocol: http
 
@@ -65,7 +65,7 @@ services:
     labels:
       traefik.docker.network: public
       traefik.enable: true
-      traefik.frontend.rule: HostRegexp:hub.{domain:[a-z]+}
+      traefik.frontend.rule: "HostRegexp: hub.{domain:[a-z.]+}"
       traefik.port: 80
       traefik.protocol: http
 
@@ -83,7 +83,7 @@ services:
     labels:
       traefik.docker.network: public
       traefik.enable: true
-      traefik.frontend.rule: HostRegexp:git.{domain:[a-z]+}
+      traefik.frontend.rule: "HostRegexp: git.{domain:[a-z.]+}"
       traefik.port: 80
       traefik.protocol: http
 
@@ -105,7 +105,7 @@ services:
     labels:
       traefik.docker.network: public
       traefik.enable: true
-      traefik.frontend.rule: HostRegexp:ci.{domain:[a-z]+}
+      traefik.frontend.rule: "HostRegexp: ci.{domain:[a-z.]+}"
       traefik.port: 80
       traefik.protocol: http
 
@@ -145,7 +145,7 @@ services:
     labels:
       traefik.docker.network: public
       traefik.enable: true
-      traefik.frontend.rule: HostRegexp:ops.{domain:[a-z]+}
+      traefik.frontend.rule: "HostRegexp: ops.{domain:[a-z.]+}"
       traefik.port: 80
       traefik.protocol: http
 
