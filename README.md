@@ -11,6 +11,8 @@ The `docker-compose.yml` deploys a demo environment for testing and learning con
 - InfluxDB
 - Grafana
 
+[![Try in PWD](https://cdn.rawgit.com/play-with-docker/stacks/cff22438/assets/images/button.png)](http://play-with-docker.com?stack=https://raw.githubusercontent.com/nicholasdille/docker-ci-cd-demo/traefik/docker-compose.yml)
+
 ## Usage
 
 The following commands build and deploy the environment:
