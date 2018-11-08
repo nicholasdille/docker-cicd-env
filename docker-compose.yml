@@ -7,10 +7,6 @@ volumes:
   influxdb-data:
   grafana-data:
 
-networks:
-  public:
-    external: true
-
 services:
 
   proxy:
@@ -26,14 +22,6 @@ services:
       - 80:80
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - public
-    labels:
-      traefik.docker.network: public
-      traefik.enable: true
-      traefik.frontend.rule: "HostRegexp: traefik.{domain:[a-z.]+}"
-      traefik.port: 8080
-      traefik.protocol: http
 
   registry:
     image: registry
@@ -41,13 +29,9 @@ services:
       - 5000:5000
     volumes:
       - "registry-data:/var/lib/registry"
-    networks:
-      - public
-      - default
     labels:
-      traefik.docker.network: public
       traefik.enable: true
-      traefik.frontend.rule: "HostRegexp: registry.{domain:[a-z.]+}"
+      traefik.frontend.rule: "HostRegexp: registry.{domain:.+}"
       traefik.port: 5000
       traefik.protocol: http
 
@@ -58,13 +42,9 @@ services:
     environment:
       ENV_DOCKER_REGISTRY_HOST: registry
       ENV_DOCKER_REGISTRY_PORT: 5000
-    networks:
-      - public
-      - default
     labels:
-      traefik.docker.network: public
       traefik.enable: true
-      traefik.frontend.rule: "HostRegexp: hub.{domain:[a-z.]+}"
+      traefik.frontend.rule: "HostRegexp: hub.{domain:.+}"
       traefik.port: 80
       traefik.protocol: http
 
@@ -76,13 +56,9 @@ services:
       - "2222:22"
     volumes:
       - "gitea-data:/data"
-    networks:
-      - public
-      - default
     labels:
-      traefik.docker.network: public
       traefik.enable: true
-      traefik.frontend.rule: "HostRegexp: git.{domain:[a-z.]+}"
+      traefik.frontend.rule: "HostRegexp: git.{domain:.+}"
       traefik.port: 3000
       traefik.protocol: http
 
@@ -98,13 +74,9 @@ services:
       DRONE_GITEA: "true"
       DRONE_GITEA_URL: http://gitea:3000
       DRONE_SECRET: mydronesecret
-    networks:
-      - public
-      - default
     labels:
-      traefik.docker.network: public
       traefik.enable: true
-      traefik.frontend.rule: "HostRegexp: ci.{domain:[a-z.]+}"
+      traefik.frontend.rule: "HostRegexp: ci.{domain:.+}"
       traefik.port: 8000
       traefik.protocol: http
 
@@ -138,13 +110,9 @@ services:
       - influxdb
     volumes:
       - "grafana-data:/var/lib/grafana"
-    networks:
-      - public
-      - default
     labels:
-      traefik.docker.network: public
       traefik.enable: true
-      traefik.frontend.rule: "HostRegexp: ops.{domain:[a-z.]+}"
+      traefik.frontend.rule: "HostRegexp: ops.{domain:.+}"
       traefik.port: 3000
       traefik.protocol: http
 
