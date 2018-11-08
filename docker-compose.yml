@@ -30,23 +30,23 @@ services:
     volumes:
       - "registry-data:/var/lib/registry"
     labels:
-      traefik.enable: true
+      traefik.enable: "true"
       traefik.frontend.rule: "HostRegexp: registry.{domain:.+}"
       traefik.port: 5000
-      traefik.protocol: http
+      traefik.protocol: "http"
 
   web:
     image: konradkleine/docker-registry-frontend:v2
     depends_on:
       - registry
     environment:
-      ENV_DOCKER_REGISTRY_HOST: registry
+      ENV_DOCKER_REGISTRY_HOST: "registry"
       ENV_DOCKER_REGISTRY_PORT: 5000
     labels:
-      traefik.enable: true
+      traefik.enable: "true"
       traefik.frontend.rule: "HostRegexp: hub.{domain:.+}"
       traefik.port: 80
-      traefik.protocol: http
+      traefik.protocol: "http"
 
   gitea:
     image: gitea/gitea
@@ -57,10 +57,10 @@ services:
     volumes:
       - "gitea-data:/data"
     labels:
-      traefik.enable: true
+      traefik.enable: "true"
       traefik.frontend.rule: "HostRegexp: git.{domain:.+}"
       traefik.port: 3000
-      traefik.protocol: http
+      traefik.protocol: "http"
 
   drone:
     image: drone/drone:0.8
@@ -70,15 +70,15 @@ services:
       - drone-data:/var/lib/drone/
     environment:
       DRONE_OPEN: "true"
-      DRONE_HOST: http://127.0.0.1
+      DRONE_HOST: "http://127.0.0.1"
       DRONE_GITEA: "true"
-      DRONE_GITEA_URL: http://gitea:3000
-      DRONE_SECRET: mydronesecret
+      DRONE_GITEA_URL: "http://gitea:3000"
+      DRONE_SECRET: "mydronesecret"
     labels:
-      traefik.enable: true
+      traefik.enable: "true"
       traefik.frontend.rule: "HostRegexp: ci.{domain:.+}"
       traefik.port: 8000
-      traefik.protocol: http
+      traefik.protocol: "http"
 
   drone-agent:
     image: drone/agent:0.8
@@ -88,19 +88,19 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      DRONE_SERVER: drone:9000
-      DRONE_SECRET: mydronesecret
+      DRONE_SERVER: "drone:9000"
+      DRONE_SECRET: "mydronesecret"
 
   influxdb:
     image: influxdb:alpine
     environment:
-      INFLUXDB_DB: demo
-      INFLUXDB_ADMIN_USER: admin
-      INFLUXDB_ADMIN_PASSWORD: admin
-      INFLUXDB_READ_USER: read
-      INFLUXDB_READ_PASSWORD: read
-      INFLUXDB_WRITE_USER: write
-      INFLUXDB_WRITE_PASSWORD: write
+      INFLUXDB_DB: "demo"
+      INFLUXDB_ADMIN_USER: "admin"
+      INFLUXDB_ADMIN_PASSWORD: "admin"
+      INFLUXDB_READ_USER: "read"
+      INFLUXDB_READ_PASSWORD: "read"
+      INFLUXDB_WRITE_USER: "write"
+      INFLUXDB_WRITE_PASSWORD: "write"
     volumes:
       - "influxdb-data:/var/lib/influxdb"
 
@@ -111,10 +111,10 @@ services:
     volumes:
       - "grafana-data:/var/lib/grafana"
     labels:
-      traefik.enable: true
+      traefik.enable: "true"
       traefik.frontend.rule: "HostRegexp: ops.{domain:.+}"
       traefik.port: 3000
-      traefik.protocol: http
+      traefik.protocol: "http"
 
   telegraf:
     build: github.com/nicholasdille/docker-cicd-env#traefik:telegraf
