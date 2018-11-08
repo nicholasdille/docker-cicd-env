@@ -95,9 +95,9 @@ services:
     volumes:
       - drone-data:/var/lib/drone/
     environment:
-      DRONE_OPEN: true
+      DRONE_OPEN: "true"
       DRONE_HOST: http://127.0.0.1
-      DRONE_GITEA: true
+      DRONE_GITEA: "true"
       DRONE_GITEA_URL: http://gitea:3000
       DRONE_SECRET: mydronesecret
     networks:
