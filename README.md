@@ -20,14 +20,14 @@ docker-compose build
 docker-compose up -d
 ```
 
-The sevices will then be available behind a reverse proxy on port 80 with the following names:
+The sevices will then be available behind a reverse proxy (port 80) on your own domain with the following subdomains:
 
-- Docker registry: registry.example.com
-- Docker registry frontend: hub.example.com
-- Gitea: git.example.com
-- GoCD server: gocd.example.com
-- Drone server: ci.example.com
-- Grafana: grafana.example.com
+- Docker registry: registry.*
+- Docker registry frontend: hub.*
+- Gitea: git.*
+- GoCD server: gocd.*
+- Drone server: ci.*
+- Grafana: ops.*
 
 If required, all services are made available on a dedicated port after running:
 

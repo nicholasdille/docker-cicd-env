@@ -38,7 +38,7 @@ services:
                 labels:
                         traefik.docker.network: public
                         traefik.enable: true
-                        traefik.frontend.rule: Host:registry.example.com
+                        traefik.frontend.rule: HostRegexp:registry.{domain:[a-z]+}
                         traefik.port: 80
                         traefik.protocol: http
         web:
@@ -54,13 +54,13 @@ services:
                 labels:
                         traefik.docker.network: public
                         traefik.enable: true
-                        traefik.frontend.rule: Host:hub.example.com
+                        traefik.frontend.rule: HostRegexp:hub.{domain:[a-z]+}
                         traefik.port: 80
                         traefik.protocol: http
         gitea:
                 image: gitea/gitea
                 environment:
-                        - SSH_PORT=2222
+                        SSH_PORT: 2222
                 ports:
                         - "2222:22"
                 volumes:
@@ -71,7 +71,7 @@ services:
                 labels:
                         traefik.docker.network: public
                         traefik.enable: true
-                        traefik.frontend.rule: Host:git.example.com
+                        traefik.frontend.rule: HostRegexp:git.{domain:[a-z]+}
                         traefik.port: 80
                         traefik.protocol: http
         go-server:
@@ -86,7 +86,7 @@ services:
                 labels:
                         traefik.docker.network: public
                         traefik.enable: true
-                        traefik.frontend.rule: Host:gocd.example.com
+                        traefik.frontend.rule: HostRegexp:gocd.{domain:[a-z]+}
                         traefik.port: 80
                         traefik.protocol: http
         dind:
@@ -113,18 +113,18 @@ services:
                 volumes:
                         - drone-data:/var/lib/drone/
                 environment:
-                        - DRONE_OPEN=true
-                        - DRONE_HOST=http://127.0.0.1
-                        - DRONE_GITEA=true
-                        - DRONE_GITEA_URL=http://gitea:3000
-                        - DRONE_SECRET=mydronesecret
+                        DRONE_OPEN: true
+                        DRONE_HOST: http://127.0.0.1
+                        DRONE_GITEA: true
+                        DRONE_GITEA_URL: http://gitea:3000
+                        DRONE_SECRET: mydronesecret
                 networks:
                         - public
                         - default
                 labels:
                         traefik.docker.network: public
                         traefik.enable: true
-                        traefik.frontend.rule: Host:ci.example.com
+                        traefik.frontend.rule: HostRegexp:ci.{domain:[a-z]+}
                         traefik.port: 80
                         traefik.protocol: http
         drone-agent:
@@ -135,8 +135,8 @@ services:
                 volumes:
                         - /var/run/docker.sock:/var/run/docker.sock
                 environment:
-                        - DRONE_SERVER=drone:9000
-                        - DRONE_SECRET=mydronesecret
+                        DRONE_SERVER: drone:9000
+                        DRONE_SECRET: mydronesecret
         influxdb:
                 image: influxdb:alpine
                 environment:
@@ -161,7 +161,7 @@ services:
                 labels:
                         traefik.docker.network: public
                         traefik.enable: true
-                        traefik.frontend.rule: Host:grafana.example.com
+                        traefik.frontend.rule: HostRegexp:ops.{domain:[a-z]+}
                         traefik.port: 80
                         traefik.protocol: http
         telegraf:
