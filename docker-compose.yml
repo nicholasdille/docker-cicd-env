@@ -7,11 +7,15 @@ volumes:
   influxdb-data:
   grafana-data:
 
+configs:
+  telegraf-config:
+    file: https://github.com/nicholasdille/docker-cicd-env/raw/master/telegraf/telegraf.conf
+
 services:
 
   proxy:
-    build: github.com/nicholasdille/docker-cicd-env#traefik:traefik
-    image: traefik
+    image: traefik:1.7
+    command: ""
     depends_on:
       - web
       - gitea
@@ -24,7 +28,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   registry:
-    image: registry
+    image: registry:2
     ports:
       - 5000:5000
     volumes:
@@ -49,7 +53,7 @@ services:
       traefik.protocol: "http"
 
   gitea:
-    image: gitea/gitea
+    image: gitea/gitea:1.5
     environment:
       SSH_PORT: 2222
     ports:
@@ -63,7 +67,7 @@ services:
       traefik.protocol: "http"
 
   drone:
-    image: drone/drone:0.8
+    image: drone/drone:1.0.0-rc.1
     depends_on:
       - gitea
     volumes:
@@ -81,7 +85,7 @@ services:
       traefik.protocol: "http"
 
   drone-agent:
-    image: drone/agent:0.8
+    image: drone/agent:1.0.0-rc.1
     command: agent
     depends_on:
       - drone
@@ -92,7 +96,7 @@ services:
       DRONE_SECRET: "mydronesecret"
 
   influxdb:
-    image: influxdb:alpine
+    image: influxdb:1.6-alpine
     environment:
       INFLUXDB_DB: "demo"
       INFLUXDB_ADMIN_USER: "admin"
@@ -105,7 +109,7 @@ services:
       - "influxdb-data:/var/lib/influxdb"
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:latest
     depends_on:
       - influxdb
     volumes:
@@ -117,8 +121,10 @@ services:
       traefik.protocol: "http"
 
   telegraf:
-    build: github.com/nicholasdille/docker-cicd-env#traefik:telegraf
-    image: telegraf
+    image: telegraf:1.8-alpine
+    configs:
+      - source: telegraf-config
+        target: /etc/telegraf/telegraf.conf
     environment:
       INFLUXDB_URL: "http://influxdb:8086"
       INFLUXDB_NAME: "demo"
