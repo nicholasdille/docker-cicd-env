@@ -24,6 +24,7 @@ The sevices will then be available behind a reverse proxy on port 80 with the fo
 
 - Docker registry: registry.example.com
 - Docker registry frontend: hub.example.com
+- Gitea: git.example.com
 - GoCD server: gocd.example.com
 - Drone server: ci.example.com
 - Grafana: grafana.example.com
