@@ -3,7 +3,6 @@ version: '2.0'
 volumes:
   registry-data:
   gitea-data:
-  go-server-data:
   drone-data:
   influxdb-data:
   grafana-data:
@@ -49,7 +48,7 @@ services:
       traefik.docker.network: public
       traefik.enable: true
       traefik.frontend.rule: "HostRegexp: registry.{domain:[a-z.]+}"
-      traefik.port: 80
+      traefik.port: 5000
       traefik.protocol: http
 
   web:
@@ -84,7 +83,7 @@ services:
       traefik.docker.network: public
       traefik.enable: true
       traefik.frontend.rule: "HostRegexp: git.{domain:[a-z.]+}"
-      traefik.port: 80
+      traefik.port: 3000
       traefik.protocol: http
 
   drone:
@@ -106,7 +105,7 @@ services:
       traefik.docker.network: public
       traefik.enable: true
       traefik.frontend.rule: "HostRegexp: ci.{domain:[a-z.]+}"
-      traefik.port: 80
+      traefik.port: 8000
       traefik.protocol: http
 
   drone-agent:
@@ -146,7 +145,7 @@ services:
       traefik.docker.network: public
       traefik.enable: true
       traefik.frontend.rule: "HostRegexp: ops.{domain:[a-z.]+}"
-      traefik.port: 80
+      traefik.port: 3000
       traefik.protocol: http
 
   telegraf:
