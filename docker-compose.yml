@@ -1,4 +1,5 @@
 version: '2.0'
+
 volumes:
         registry-data:
         gitea-data:
@@ -6,12 +7,15 @@ volumes:
         drone-data:
         influxdb-data:
         grafana-data:
+
 networks:
         public:
                 external: true
+
 services:
         proxy:
-                image: traefik:1.7
+                build: github.com/nicholasdille/docker-cicd-env#traefik:traefik
+                image: traefik
                 depends_on:
                         - web
                         - gitea
@@ -23,7 +27,6 @@ services:
                         - 80:80
                 volumes:
                         - /var/run/docker.sock:/var/run/docker.sock
-                        - ./traefik/traefik.toml:/traefik.toml
                 networks:
                         - public
         registry:
@@ -74,38 +77,6 @@ services:
                         traefik.frontend.rule: HostRegexp:git.{domain:[a-z]+}
                         traefik.port: 80
                         traefik.protocol: http
-        go-server:
-                image: gocd/gocd-server:v18.8.0
-                volumes:
-                        - "go-server-data:/godata"
-                depends_on:
-                        - gitea
-                networks:
-                        - public
-                        - default
-                labels:
-                        traefik.docker.network: public
-                        traefik.enable: true
-                        traefik.frontend.rule: HostRegexp:gocd.{domain:[a-z]+}
-                        traefik.port: 80
-                        traefik.protocol: http
-        dind:
-                build: github.com/nicholasdille/docker-ci-cd-demo#master:dind
-                image: dind
-                privileged: true
-                depends_on:
-                        - registry
-        go-agent:
-                build: github.com/nicholasdille/docker-ci-cd-demo#master:go-agent
-                image: go-agent
-                depends_on:
-                        - go-server
-                        - gitea
-                        - registry
-                        - dind
-                environment:
-                        GO_SERVER_URL: https://go-server:8154/go
-                        DOCKER_HOST: tcp://dind:2375
         drone:
                 image: drone/drone:0.8
                 depends_on:
@@ -165,7 +136,7 @@ services:
                         traefik.port: 80
                         traefik.protocol: http
         telegraf:
-                build: github.com/nicholasdille/docker-ci-cd-demo#master:telegraf
+                build: github.com/nicholasdille/docker-cicd-env#traefik:telegraf
                 image: telegraf
                 depends_on:
                         - influxdb
