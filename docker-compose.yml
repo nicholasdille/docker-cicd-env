@@ -119,6 +119,11 @@ services:
   telegraf:
     build: github.com/nicholasdille/docker-cicd-env#traefik:telegraf
     image: telegraf
+    environment:
+      INFLUXDB_URL: "http://influxdb:8086"
+      INFLUXDB_NAME: "demo"
+      INFLUXDB_USER: "write"
+      INFLUXDB_PASS: "write"
     depends_on:
       - influxdb
     volumes:
