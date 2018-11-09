@@ -7,25 +7,11 @@ volumes:
   influxdb-data:
   grafana-data:
 
-configs:
-  telegraf-config:
-    file: https://github.com/nicholasdille/docker-cicd-env/raw/master/telegraf.conf
-  traefik-config:
-    file: https://github.com/nicholasdille/docker-cicd-env/raw/master/traefik.toml
-
 services:
 
   proxy:
     image: traefik:1.7
-    configs:
-      - source: traefik-config
-        target: /traefik.toml
-    depends_on:
-      - web
-      - gitea
-      - drone
-      - influxdb
-      - grafana
+    command: "--debug --docker --docker.endpoint='unix:///var/run/docker.sock' --docker.watch=true --docker.exposedByDefault=false --entryPoints='Name:http Address::80' --defaultEntryPoints='http'"
     ports:
       - 80:80
     volumes:
@@ -78,14 +64,15 @@ services:
       - drone-data:/var/lib/drone/
     environment:
       DRONE_OPEN: "true"
-      DRONE_HOST: "http://127.0.0.1"
-      DRONE_GITEA: "true"
-      DRONE_GITEA_URL: "http://gitea:3000"
-      DRONE_SECRET: "mydronesecret"
+      DRONE_RPC_SECRET: "mydronesecret"
+      DRONE_SERVER_HOST: "drone"
+      DRONE_SERVER_PROTO: "http"
+      DRONE_GITEA_SERVER: "http://gitea:3000"
+      DRONE_GIT_ALWAYS_AUTH: "false"
     labels:
       traefik.enable: "true"
       traefik.frontend.rule: "HostRegexp: ci.{domain:.+}"
-      traefik.port: 8000
+      traefik.port: 80
       traefik.protocol: "http"
 
   drone-agent:
@@ -96,8 +83,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      DRONE_SERVER: "drone:9000"
-      DRONE_SECRET: "mydronesecret"
+      DRONE_RPC_SERVER: "drone"
+      DRONE_RPC_SECRET: "mydronesecret"
+      DRONE_RUNNER_CAPACITY: 1
 
   influxdb:
     image: influxdb:1.6-alpine
@@ -126,9 +114,8 @@ services:
 
   telegraf:
     image: telegraf:1.8-alpine
-    configs:
-      - source: telegraf-config
-        target: /etc/telegraf/telegraf.conf
+    entrypoint: "sh"
+    command: "-c 'apk --update add curl && curl -Ls https://github.com/nicholasdille/docker-cicd-env/raw/master/telegraf.conf > /etc/telegraf/telegraf.conf && exec telegraf'"
     environment:
       INFLUXDB_URL: "http://influxdb:8086"
       INFLUXDB_NAME: "demo"
