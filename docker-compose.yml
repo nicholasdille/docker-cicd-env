@@ -115,8 +115,17 @@ services:
   telegraf:
     image: telegraf:1.8-alpine
     entrypoint: "sh"
-    command: "-c 'apk --update add curl && curl -Ls https://github.com/nicholasdille/docker-cicd-env/raw/master/telegraf.conf > /etc/telegraf/telegraf.conf && exec telegraf'"
+    command: "-c 'echo \"$${INFLUXDB_CONF}\" > /etc/telegraf/telegraf.conf && exec telegraf'"
     environment:
+      INFLUXDB_CONF: |
+        [[inputs.docker]]
+          endpoint = "unix:///var/run/docker.sock"
+
+        [[outputs.influxdb]]
+          urls = ["$$INFLUXDB_URL"]
+          database = "$$INFLUXDB_NAME"
+          username = "$$INFLUXDB_USER"
+          password = "$$INFLUXDB_PASS"
       INFLUXDB_URL: "http://influxdb:8086"
       INFLUXDB_NAME: "demo"
       INFLUXDB_USER: "write"
