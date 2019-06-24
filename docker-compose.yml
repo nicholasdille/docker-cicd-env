@@ -11,11 +11,63 @@ services:
 
   proxy:
     image: traefik:1.7
-    command: "--debug --docker --docker.endpoint='unix:///var/run/docker.sock' --docker.watch=true --docker.exposedByDefault=false --entryPoints='Name:http Address::80' --defaultEntryPoints='http'"
+    command:
+      - --debug
+      - --accesslog=false
+      - --loglevel=DEBUG
+      - --entrypoints=Name:api Address::8080 Redirect.Entrypoint:https
+      - --entrypoints=Name:ping Address::8081 Redirect.Entrypoint:https
+      - --entrypoints=Name:http Address::80 Redirect.Entrypoint:https
+      - --entrypoints=Name:https Address::443 TLS
+      - --defaultentrypoints=http,https
+      - --api
+      - --api.entrypoint=api
+      - --api.dashboard=true
+      - --ping
+      - --ping.entrypoint=ping
+      - --docker=true
+      - --docker.endpoint=unix:///var/run/docker.sock
+      - --docker.watch=true
+      - --docker.exposedByDefault=false
+      - --docker.domain=go-nerd.de
+      - --acme=true
+      - --acme.acmelogging=true
+      - --acme.email=${ACME_EMAIL?Variable ACME_EMAIL not set}
+      - --acme.storage=/acme/acme.json
+      - --acme.entrypoint=https
+      - --acme.onhostrule=true
+      - --acme.httpchallenge.entrypoint=http
     ports:
       - 80:80
+      - 443:443
     volumes:
+      - /acme:/acme
       - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+    labels:
+      traefik.enable: "true"
+      traefik.api.frontend.rule: "Host: api.${DOMAIN?Variable DOMAIN is not set}"
+      traefik.api.frontend.auth.basic.users: "${API_ADMIN_CREDS?Variable API_ADMIN_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
+      traefik.api.port: 8080
+      traefik.ping.frontend.rule: "Host: ping.${DOMAIN?Variable DOMAIN is not set}"
+      traefik.ping.port: 8081
+
+  dind:
+    image: docker:stable-dind
+    privileged: true
+
+  ide:
+    image: nicholasdille/code-container
+    build:
+      context: github.com/nicholasdille/code-container
+    environment:
+      - DOCKER_HOST=tcp://dind:2375
+      - EDITOR_CLONE=https://github.com/nicholasdille/Sessions
+      - EDITOR_EXTENSIONS=peterjausovec.vscode-docker
+    labels:
+      traefik.enable: "true"
+      traefik.frontend.rule: "Host: ide.${DOMAIN?Variable DOMAIN is not set}"
+      traefik.port: 8443
 
   registry:
     image: registry:2
@@ -25,9 +77,8 @@ services:
       - "registry-data:/var/lib/registry"
     labels:
       traefik.enable: "true"
-      traefik.frontend.rule: "HostRegexp: registry.{domain:.+}"
+      traefik.frontend.rule: "Host: registry.${DOMAIN?Variable DOMAIN is not set}"
       traefik.port: 5000
-      traefik.protocol: "http"
 
   web:
     image: konradkleine/docker-registry-frontend:v2
@@ -38,9 +89,8 @@ services:
       ENV_DOCKER_REGISTRY_PORT: 5000
     labels:
       traefik.enable: "true"
-      traefik.frontend.rule: "HostRegexp: hub.{domain:.+}"
+      traefik.frontend.rule: "Host: hub.${DOMAIN?Variable DOMAIN is not set}"
       traefik.port: 80
-      traefik.protocol: "http"
 
   gitea:
     image: gitea/gitea:1.5
@@ -52,9 +102,8 @@ services:
       - "gitea-data:/data"
     labels:
       traefik.enable: "true"
-      traefik.frontend.rule: "HostRegexp: git.{domain:.+}"
+      traefik.frontend.rule: "Host: git.${DOMAIN?Variable DOMAIN is not set}"
       traefik.port: 3000
-      traefik.protocol: "http"
 
   drone:
     image: drone/drone:1.0.0-rc.1
@@ -71,9 +120,8 @@ services:
       DRONE_GIT_ALWAYS_AUTH: "false"
     labels:
       traefik.enable: "true"
-      traefik.frontend.rule: "HostRegexp: ci.{domain:.+}"
+      traefik.frontend.rule: "Host: ci.${DOMAIN?Variable DOMAIN is not set}"
       traefik.port: 80
-      traefik.protocol: "http"
 
   drone-agent:
     image: drone/agent:1.0.0-rc.1
@@ -108,9 +156,8 @@ services:
       - "grafana-data:/var/lib/grafana"
     labels:
       traefik.enable: "true"
-      traefik.frontend.rule: "HostRegexp: ops.{domain:.+}"
+      traefik.frontend.rule: "Host: ops.${DOMAIN?Variable DOMAIN is not set}"
       traefik.port: 3000
-      traefik.protocol: "http"
 
   telegraf:
     image: telegraf:1.8-alpine
