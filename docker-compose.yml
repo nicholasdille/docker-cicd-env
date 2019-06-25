@@ -93,7 +93,7 @@ services:
       traefik.port: 80
 
   gitea:
-    image: gitea/gitea:1.5
+    image: gitea/gitea:1.8
     environment:
       SSH_PORT: 2222
     ports:
@@ -106,7 +106,7 @@ services:
       traefik.port: 3000
 
   drone:
-    image: drone/drone:1.0.0-rc.1
+    image: drone/drone:1.2.1
     depends_on:
       - gitea
     volumes:
@@ -124,7 +124,7 @@ services:
       traefik.port: 80
 
   drone-agent:
-    image: drone/agent:1.0.0-rc.1
+    image: drone/agent:1.2.1
     command: agent
     depends_on:
       - drone
@@ -136,7 +136,7 @@ services:
       DRONE_RUNNER_CAPACITY: 1
 
   influxdb:
-    image: influxdb:1.6-alpine
+    image: influxdb:1.7-alpine
     environment:
       INFLUXDB_DB: "demo"
       INFLUXDB_ADMIN_USER: "admin"
@@ -160,7 +160,7 @@ services:
       traefik.port: 3000
 
   telegraf:
-    image: telegraf:1.8-alpine
+    image: telegraf:1.11-alpine
     entrypoint: "sh"
     command: "-c 'echo \"$${INFLUXDB_CONF}\" > /etc/telegraf/telegraf.conf && exec telegraf'"
     environment:
