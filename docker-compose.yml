@@ -95,6 +95,10 @@ services:
   gitea:
     image: gitea/gitea:1.8
     environment:
+      SECRET_KEY: "gitea"
+      APP_NAME: "Gitea"
+      ROOT_URL: "https://git.${DOMAIN?Variable DOMAIN is not set}"
+      SSH_DOMAIN: "git.${DOMAIN?Variable DOMAIN is not set}"
       SSH_PORT: 2222
     ports:
       - "2222:22"
@@ -150,6 +154,9 @@ services:
 
   grafana:
     image: grafana/grafana:latest
+    environment:
+      GF_SERVER_ROOT_URL: "https://ops.${DOMAIN?Variable DOMAIN is not set}"
+      GF_SECURITY_ADMIN_PASSWORD: "grafana"
     depends_on:
       - influxdb
     volumes:
