@@ -98,8 +98,16 @@ services:
       traefik.port: 80
 
   gitea:
-    image: gitea/gitea:1.8
+    image: nicholasdille/gitea
+    build:
+      context: ./gitea
+      args:
+        version: 1.8
     environment:
+      INSTALL_LOCK: "true"
+      GITEA_ADMIN_NAME: ${GITEA_ADMIN_NAME:-root}
+      GITEA_ADMIN_PASS: ${GITEA_ADMIN_PASS:-G!t34}
+      GITEA_ADMIN_MAIL: ${GITEA_ADMIN_MAIL:-root@gitea}
       APP_NAME: "Gitea @ ${DOMAIN?Variable DOMAIN is not set}"
       ROOT_URL: "https://git.${DOMAIN?Variable DOMAIN is not set}"
       DISABLE_REGISTRATION: "true"
