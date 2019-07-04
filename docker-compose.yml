@@ -47,7 +47,7 @@ services:
     labels:
       traefik.enable: "true"
       traefik.api.frontend.rule: "Host: api.${DOMAIN?Variable DOMAIN is not set}"
-      traefik.api.frontend.auth.basic.users: "${API_ADMIN_CREDS?Variable API_ADMIN_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
+      traefik.api.frontend.auth.basic.users: "${TRAEFIK_API_CREDS?Variable TRAEFIK_API_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
       traefik.api.port: 8080
       traefik.ping.frontend.rule: "Host: ping.${DOMAIN?Variable DOMAIN is not set}"
       traefik.ping.port: 8081
@@ -67,6 +67,7 @@ services:
     labels:
       traefik.enable: "true"
       traefik.frontend.rule: "Host: ide.${DOMAIN?Variable DOMAIN is not set}"
+      traefik.frontend.auth.basic.users: "${IDE_CREDS?Variable IDE_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
       traefik.port: 8443
 
   registry:
@@ -78,9 +79,10 @@ services:
     labels:
       traefik.enable: "true"
       traefik.frontend.rule: "Host: registry.${DOMAIN?Variable DOMAIN is not set}"
+      traefik.frontend.auth.basic.users: "${REGISTRY_CREDS?Variable REGISTRY_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
       traefik.port: 5000
 
-  web:
+  hub:
     image: konradkleine/docker-registry-frontend:v2
     depends_on:
       - registry
@@ -90,6 +92,7 @@ services:
     labels:
       traefik.enable: "true"
       traefik.frontend.rule: "Host: hub.${DOMAIN?Variable DOMAIN is not set}"
+      traefik.api.frontend.auth.basic.users: "${HUB_CREDS?Variable HUB_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
       traefik.port: 80
 
   gitea:
