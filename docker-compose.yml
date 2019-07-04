@@ -18,7 +18,7 @@ services:
       - --entrypoints=Name:api Address::8080 Redirect.Entrypoint:https
       - --entrypoints=Name:ping Address::8081 Redirect.Entrypoint:https
       - --entrypoints=Name:http Address::80 Redirect.Entrypoint:https
-      - --entrypoints=Name:https Address::443 TLS
+      - --entrypoints=Name:https Address::443 TLS:/ssl/${DOMAIN?Variable DOMAIN is not set}/cer,/ssl/${DOMAIN?Variable DOMAIN is not set}/key
       - --defaultentrypoints=http,https
       - --api
       - --api.entrypoint=api
@@ -29,19 +29,12 @@ services:
       - --docker.endpoint=unix:///var/run/docker.sock
       - --docker.watch=true
       - --docker.exposedByDefault=false
-      - --docker.domain=go-nerd.de
-      - --acme=true
-      - --acme.acmelogging=true
-      - --acme.email=${ACME_EMAIL?Variable ACME_EMAIL not set}
-      - --acme.storage=/acme/acme.json
-      - --acme.entrypoint=https
-      - --acme.onhostrule=true
-      - --acme.httpchallenge.entrypoint=http
+      - --docker.domain=${DOMAIN?Variable DOMAIN is not set}
     ports:
       - 80:80
       - 443:443
     volumes:
-      - /acme:/acme
+      - ./ssl:/ssl
       - /var/run/docker.sock:/var/run/docker.sock
     restart: always
     labels:
