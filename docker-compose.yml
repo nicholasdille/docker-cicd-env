@@ -28,7 +28,7 @@ services:
       - --docker.exposedByDefault=false
       - --docker.domain=go-nerd.de
       - --acme=true
-      - --acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+      #- --acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
       - --acme.acmelogging=true
       - --acme.email=${ACME_EMAIL?Variable ACME_EMAIL not set}
       - --acme.domains=traefik.${DOMAIN?Variable DOMAIN is not set},ide.${DOMAIN?Variable DOMAIN is not set},registry.${DOMAIN?Variable DOMAIN is not set},hub.${DOMAIN?Variable DOMAIN is not set},git.${DOMAIN?Variable DOMAIN is not set},ci.${DOMAIN?Variable DOMAIN is not set},ops.${DOMAIN?Variable DOMAIN is not set}
@@ -73,7 +73,11 @@ services:
       traefik.port: 8443
 
   registry:
-    image: registry:2
+    image: nicholasdille/registry
+    build:
+      context: ./registry
+      args:
+        version: 2
     ports:
       - 5000:5000
     volumes:
@@ -85,12 +89,13 @@ services:
       traefik.port: 5000
 
   hub:
-    image: konradkleine/docker-registry-frontend:v2
+    image: joxit/docker-registry-ui:static
     depends_on:
       - registry
     environment:
-      ENV_DOCKER_REGISTRY_HOST: "registry"
-      ENV_DOCKER_REGISTRY_PORT: 5000
+      REGISTRY_URL: "http://registry:5000"
+      REGISTRY_TITLE: "registry @ ${DOMAIN?Variable DOMAIN is not set}"
+      PULL_URL: "registry.${DOMAIN?Variable DOMAIN is not set}"
     labels:
       traefik.enable: "true"
       traefik.frontend.rule: "HostRegexp: hub.{domain:.+}"
