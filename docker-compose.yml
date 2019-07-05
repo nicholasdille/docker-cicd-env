@@ -175,7 +175,7 @@ services:
     image: grafana/grafana:latest
     environment:
       GF_SERVER_ROOT_URL: "https://ops.${DOMAIN?Variable DOMAIN is not set}"
-      GF_SECURITY_ADMIN_PASSWORD: "grafana"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASS?Variable GRAFANA_ADMIN_PASS is not set}"
     depends_on:
       - influxdb
     volumes:
