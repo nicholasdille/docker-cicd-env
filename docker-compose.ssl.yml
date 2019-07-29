@@ -46,6 +46,15 @@ services:
       traefik.api.frontend.auth.basic.users: "${TRAEFIK_API_CREDS?Variable TRAEFIK_API_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
       traefik.api.port: 8080
 
+  slides:
+    image: nicholasdille/slides
+    build:
+      context: slides
+    labels:
+      traefik.enable: "true"
+      traefik.frontend.rule: "HostRegexp: slides.{domain:.+}"
+      traefik.port: 80
+
   dind:
     image: docker:stable-dind
     privileged: true
