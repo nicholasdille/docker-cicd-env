@@ -1,5 +1,5 @@
 VM_BASE_NAME=workshop
-DOMAIN=inmylab.de
+DOMAIN=go-nerd.de
 HCLOUD_IMAGE=ubuntu-18.04
 HCLOUD_LOCATION=fsn1
 HCLOUD_SSH_KEY=209622
@@ -22,6 +22,10 @@ curl -sLfo /usr/local/bin/docker-compose https://github.com/docker/compose/relea
 chmod +x /usr/local/bin/docker-compose
 
 git -C /root clone https://github.com/nicholasdille/docker-cicd-env
+
+while ! test -d /acme; do
+    sleep 2
+done
 EOF
 )
 
@@ -67,6 +71,15 @@ new_dns_record() {
     local index=$1
     local ip=$2
 
+    if test -z "${CF_API_KEY}"; then
+        echo You must set CF_API_KEY
+        exit 1
+    fi
+    if test -z "${CF_API_EMAIL}"; then
+        echo You must set CF_API_EMAIL
+        exit 1
+    fi
+
     flarectl dns create-or-update --zone ${DOMAIN} --type A --name ${VM_BASE_NAME}-${index} --content "${ip}" >>~/.local/log/${VM_BASE_NAME}-${index}.log 2>&1
     flarectl dns create-or-update --zone ${DOMAIN} --type A --name "*.${VM_BASE_NAME}-${index}" --content "${ip}" >>~/.local/log/${VM_BASE_NAME}-${index}.log 2>&1
 }
@@ -76,6 +89,30 @@ wait_docker() {
     local ip=$2
 
     timeout 300 bash -c "while test -z \"\$(ssh ${ip} ps -C dockerd --no-headers)\"; do sleep 5; done"
+}
+
+create_env() {
+    local index=$1
+    local ip=$2
+
+    USER=sommer19
+    PASSWORD="Seat${index}%123"
+    TRAEFIK_AUTH=$(htpasswd -nbB ${USER} "${PASSWORD}")
+    NGINX_AUTH=$(htpasswd -nb ${USER} "${PASSWORD}")
+
+    cat >.env-${VM_BASE_NAME}-${index} <<EOF
+DOMAIN=${VM_BASE_NAME}-${index}.${DOMAIN}
+ACME_EMAIL=webmaster@${DOMAIN}
+TRAEFIK_API_CREDS=${TRAEFIK_AUTH}
+REGISTRY_CREDS=${TRAEFIK_AUTH}
+HUB_CREDS=${TRAEFIK_AUTH}
+IDE_CREDS=${TRAEFIK_AUTH}
+WEBDAV_CREDS=${NGINX_AUTH}
+GITEA_ADMIN_USER=${USER}
+GITEA_ADMIN_PASS=${PASSWORD}
+GITEA_ADMIN_PASS=${USER}@${VM_BASE_NAME}-${index}.${DOMAIN}
+GRAFANA_ADMIN_PASS=${PASSWORD}
+EOF
 }
 
 echo Creating VM 1
@@ -90,3 +127,21 @@ new_ssh_config 1 ${IP}
 
 echo Waitig for dockerd on VM 1
 wait_docker 1 ${IP}
+
+if test -d acme; then
+    echo Injecting acme.json
+    scp -r acme ${IP}:/
+fi
+
+echo Creating environment
+if ! test -f .env-${VM_BASE_NAME}-1; then
+    create_env 1 ${IP}
+fi
+
+echo Injecting environment
+scp .env-${VM_BASE_NAME}-1 ${IP}:/root/docker-cicd-env/.env
+
+ssh ${IP} bash <<EOF
+cd /root/docker-cicd-env
+docker-compose up -d
+EOF
