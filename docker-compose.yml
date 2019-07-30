@@ -31,7 +31,7 @@ services:
       #- --acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
       - --acme.acmelogging=true
       - --acme.email=${ACME_EMAIL?Variable ACME_EMAIL not set}
-      - --acme.domains=traefik.${DOMAIN?Variable DOMAIN is not set},ide.${DOMAIN?Variable DOMAIN is not set},registry.${DOMAIN?Variable DOMAIN is not set},hub.${DOMAIN?Variable DOMAIN is not set},git.${DOMAIN?Variable DOMAIN is not set},ci.${DOMAIN?Variable DOMAIN is not set},ops.${DOMAIN?Variable DOMAIN is not set}
+      - --acme.domains=traefik.${DOMAIN?Variable DOMAIN is not set},ide.${DOMAIN?Variable DOMAIN is not set},registry.${DOMAIN?Variable DOMAIN is not set},hub.${DOMAIN?Variable DOMAIN is not set},git.${DOMAIN?Variable DOMAIN is not set},ci.${DOMAIN?Variable DOMAIN is not set},webdav.${DOMAIN?Variable DOMAIN is not set},ops.${DOMAIN?Variable DOMAIN is not set}
       - --acme.storage=/acme/acme.json
       - --acme.entrypoint=https
       - --acme.onhostrule=true
@@ -135,12 +135,14 @@ services:
     volumes:
       - drone-data:/var/lib/drone/
     environment:
-      DRONE_OPEN: "true"
       DRONE_RPC_SECRET: "${DRONE_SECRET:-mydronesecret}"
       DRONE_SERVER_HOST: "drone"
       DRONE_SERVER_PROTO: "http"
+      DRONE_TLS_AUTOCERT: "false"
+      DRONE_AGENTS_ENABLED: "true"
+      DRONE_USER_CREATE: "username:${GITEA_ADMIN_NAME:-root},admin:true"
       DRONE_GITEA_SERVER: "http://gitea:3000"
-      DRONE_GIT_ALWAYS_AUTH: "false"
+      DRONE_GIT_ALWAYS_AUTH: "true"
     labels:
       traefik.enable: "true"
       traefik.frontend.rule: "HostRegexp: ci.{domain:.+}"
@@ -154,9 +156,21 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      DRONE_RPC_SERVER: "drone"
+      DRONE_RPC_SERVER: "http://drone"
       DRONE_RPC_SECRET: "${DRONE_SECRET:-mydronesecret}"
       DRONE_RUNNER_CAPACITY: 1
+
+  webdav:
+    image: nicholasdille/nginx-webdav
+    build:
+      context: webdav
+    environment:
+      WEBDAV_CREDS: "${WEBDAV_CREDS?Variable WEBDAV_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
+    labels:
+      traefik.enable: "true"
+      traefik.frontend.rule: "HostRegexp: webdav.{domain:.+}"
+      traefik.api.frontend.auth.basic.users: "${WEBDAV_CREDS?Variable WEBDAV_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
+      traefik.port: 80
 
   influxdb:
     image: influxdb:1.7-alpine
