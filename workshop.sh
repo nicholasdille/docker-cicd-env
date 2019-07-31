@@ -1,4 +1,4 @@
-VM_BASE_NAME=workshop
+VM_BASE_NAME=seat
 DOMAIN=go-nerd.de
 HCLOUD_IMAGE=ubuntu-18.04
 HCLOUD_LOCATION=fsn1
@@ -36,7 +36,7 @@ new_vm() {
     
     HCLOUD_VM_IP=$(hcloud server list --selector ${VM_BASE_NAME}=true,index=${index} --output columns=ipv4 | tail -n +2)
     if [[ -z "${HCLOUD_VM_IP}" ]]; then
-        HCLOUD_VM_NAME="${VM_BASE_NAME}-${index}"
+        HCLOUD_VM_NAME="${VM_BASE_NAME}${index}"
         hcloud server create \
             --location ${HCLOUD_LOCATION} \
             --image ${HCLOUD_IMAGE} \
@@ -56,15 +56,15 @@ new_ssh_config() {
     local index=$1
     local ip=$2
 
-    cat >~/.ssh/config.d/${VM_BASE_NAME}-${index} <<EOF
-Host ${VM_BASE_NAME}-${index} ${ip} ${VM_BASE_NAME}-${index}.${DOMAIN}
+    cat >~/.ssh/config.d/${VM_BASE_NAME}${index} <<EOF
+Host ${VM_BASE_NAME}${index} ${ip} ${VM_BASE_NAME}${index}.${DOMAIN}
     HostName ${ip}
     User root
     IdentityFile ~/id_rsa_hetzner
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
 EOF
-    chmod 0600 ~/.ssh/config.d/${VM_BASE_NAME}-${index}
+    chmod 0600 ~/.ssh/config.d/${VM_BASE_NAME}${index}
 }
 
 new_dns_record() {
@@ -80,8 +80,8 @@ new_dns_record() {
         exit 1
     fi
 
-    flarectl dns create-or-update --zone ${DOMAIN} --type A --name ${VM_BASE_NAME}-${index} --content "${ip}" >>~/.local/log/${VM_BASE_NAME}-${index}.log 2>&1
-    flarectl dns create-or-update --zone ${DOMAIN} --type A --name "*.${VM_BASE_NAME}-${index}" --content "${ip}" >>~/.local/log/${VM_BASE_NAME}-${index}.log 2>&1
+    flarectl dns create-or-update --zone ${DOMAIN} --type A --name ${VM_BASE_NAME}${index} --content "${ip}" >>~/.local/log/${VM_BASE_NAME}${index}.log 2>&1
+    flarectl dns create-or-update --zone ${DOMAIN} --type A --name "*.${VM_BASE_NAME}${index}" --content "${ip}" >>~/.local/log/${VM_BASE_NAME}${index}.log 2>&1
 }
 
 wait_docker() {
@@ -100,8 +100,8 @@ create_env() {
     TRAEFIK_AUTH=$(htpasswd -nbB ${USER} "${PASSWORD}")
     NGINX_AUTH=$(htpasswd -nb ${USER} "${PASSWORD}")
 
-    cat >.env-${VM_BASE_NAME}-${index} <<EOF
-DOMAIN=${VM_BASE_NAME}-${index}.${DOMAIN}
+    cat >.env-${VM_BASE_NAME}${index} <<EOF
+DOMAIN=${VM_BASE_NAME}${index}.${DOMAIN}
 ACME_EMAIL=webmaster@${DOMAIN}
 TRAEFIK_API_CREDS=${TRAEFIK_AUTH}
 REGISTRY_CREDS=${TRAEFIK_AUTH}
@@ -110,38 +110,40 @@ IDE_CREDS=${TRAEFIK_AUTH}
 WEBDAV_CREDS=${NGINX_AUTH}
 GITEA_ADMIN_USER=${USER}
 GITEA_ADMIN_PASS=${PASSWORD}
-GITEA_ADMIN_PASS=${USER}@${VM_BASE_NAME}-${index}.${DOMAIN}
+GITEA_ADMIN_PASS=${USER}@${VM_BASE_NAME}${index}.${DOMAIN}
 GRAFANA_ADMIN_PASS=${PASSWORD}
 EOF
 }
 
-echo Creating VM 1
-IP=$(new_vm 1)
-echo   Got IP ${IP}
+for I in $(seq 1 1); do
+    echo Creating VM ${I}
+    IP=$(new_vm ${I})
+    echo   Got IP ${IP}
 
-echo Creating SSH configuration for VM 1
-new_dns_record 1 ${IP}
+    echo Creating SSH configuration for VM ${I}
+    new_dns_record ${I} ${IP}
 
-echo Adding DNS record for VM 1
-new_ssh_config 1 ${IP}
+    echo Adding DNS record for VM ${I}
+    new_ssh_config ${I} ${IP}
 
-echo Waitig for dockerd on VM 1
-wait_docker 1 ${IP}
+    echo Waitig for dockerd on VM ${I}
+    wait_docker ${I} ${IP}
 
-if test -d acme; then
-    echo Injecting acme.json
-    scp -r acme ${IP}:/
-fi
+    if test -d acme; then
+        echo Injecting acme.json
+        scp -r acme ${IP}:/
+    fi
 
-echo Creating environment
-if ! test -f .env-${VM_BASE_NAME}-1; then
-    create_env 1 ${IP}
-fi
+    echo Creating environment
+    if ! test -f .env-${VM_BASE_NAME}${I}; then
+        create_env ${I} ${IP}
+    fi
 
-echo Injecting environment
-scp .env-${VM_BASE_NAME}-1 ${IP}:/root/docker-cicd-env/.env
+    echo Injecting environment
+    scp .env-${VM_BASE_NAME}${I} ${IP}:/root/docker-cicd-env/.env
 
-ssh ${IP} bash <<EOF
+    ssh ${IP} bash <<EOF
 cd /root/docker-cicd-env
 docker-compose up -d
 EOF
+done
