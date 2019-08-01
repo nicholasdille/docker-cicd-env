@@ -129,9 +129,10 @@ for I in $(seq 1 1); do
     echo Waitig for dockerd on VM ${I}
     wait_docker ${I} ${IP}
 
-    if test -d acme; then
-        echo Injecting acme.json
-        scp -r acme ${IP}:/
+    if test -d ssl-${VM_BASE_NAME}${I}; then
+        echo Injecting certificate
+        ssh ${IP} mkdir -p /ssl
+        scp ssl-${VM_BASE_NAME}${I}/certificate.* ${IP}:/ssl/
     fi
 
     echo Creating environment
