@@ -1,5 +1,5 @@
 VM_BASE_NAME=seat
-DOMAIN=go-nerd.de
+DOMAIN=inmylab.de
 HCLOUD_IMAGE=ubuntu-18.04
 HCLOUD_LOCATION=fsn1
 HCLOUD_SSH_KEY=209622
@@ -111,7 +111,7 @@ GRAFANA_ADMIN_PASS=${PASSWORD}
 EOF
 }
 
-for I in $(seq 3 15); do
+for I in $(seq 1 15); do
     echo Creating VM ${I}
     IP=$(new_vm ${I})
     echo   Got IP ${IP}
@@ -135,6 +135,9 @@ for I in $(seq 3 15); do
     if ! test -f .env-${VM_BASE_NAME}${I}; then
         create_env ${I} ${IP}
     fi
+
+    echo Waiting for clone
+    timeout 300 bash -c "while ! ssh ${IP} test -d /root/docker-cicd-env; do sleep 5; done"
 
     echo Injecting environment
     scp .env-${VM_BASE_NAME}${I} ${IP}:/root/docker-cicd-env/.env
