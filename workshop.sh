@@ -22,10 +22,6 @@ curl -sLfo /usr/local/bin/docker-compose https://github.com/docker/compose/relea
 chmod +x /usr/local/bin/docker-compose
 
 git -C /root clone https://github.com/nicholasdille/docker-cicd-env
-
-while ! test -d /acme; do
-    sleep 2
-done
 EOF
 )
 
@@ -115,7 +111,7 @@ GRAFANA_ADMIN_PASS=${PASSWORD}
 EOF
 }
 
-for I in $(seq 1 1); do
+for I in $(seq 3 15); do
     echo Creating VM ${I}
     IP=$(new_vm ${I})
     echo   Got IP ${IP}
@@ -143,8 +139,9 @@ for I in $(seq 1 1); do
     echo Injecting environment
     scp .env-${VM_BASE_NAME}${I} ${IP}:/root/docker-cicd-env/.env
 
+    echo Deploying services
     ssh ${IP} bash <<EOF
 cd /root/docker-cicd-env
-docker-compose up -d
+docker-compose --file docker-compose.ssl.yml up -d
 EOF
 done
