@@ -18,7 +18,7 @@ services:
       - --loglevel=INFO
       - --entrypoints=Name:api Address::8080 Redirect.Entrypoint:https
       - --entrypoints=Name:http Address::80 Redirect.Entrypoint:https
-      - --entrypoints=Name:https Address::443 TLS
+      - --entrypoints=Name:https Address::443 TLS:/ssl/certificate.crt,/ssl/certificate.key
       - --defaultentrypoints=http,https
       - --api
       - --api.entrypoint=api
@@ -28,15 +28,6 @@ services:
       - --docker.watch=true
       - --docker.exposedByDefault=false
       - --docker.domain=go-nerd.de
-      - --acme=true
-      #- --acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
-      - --acme.acmelogging=true
-      - --acme.email=${ACME_EMAIL?Variable ACME_EMAIL not set}
-      - --acme.domains=traefik.${DOMAIN?Variable DOMAIN is not set},ide.${DOMAIN?Variable DOMAIN is not set},registry.${DOMAIN?Variable DOMAIN is not set},hub.${DOMAIN?Variable DOMAIN is not set},git.${DOMAIN?Variable DOMAIN is not set},ci.${DOMAIN?Variable DOMAIN is not set},webdav.${DOMAIN?Variable DOMAIN is not set},ops.${DOMAIN?Variable DOMAIN is not set}
-      - --acme.storage=/acme/acme.json
-      - --acme.entrypoint=https
-      - --acme.onhostrule=true
-      - --acme.httpchallenge.entrypoint=http
       - --metrics.influxdb=true
       - --metrics.influxdb.protocol=http
       - --metrics.influxdb.address=http://${INFLUXDB_WRITE_USER:-write}:${INFLUXDB_WRITE_PASS:-write}@influxdb:8086
@@ -46,8 +37,8 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - /acme:/acme
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /ssl:/ssl
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: always
     labels:
       traefik.enable: "true"
@@ -55,18 +46,23 @@ services:
       traefik.api.frontend.auth.basic.users: "${TRAEFIK_API_CREDS?Variable TRAEFIK_API_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
       traefik.api.port: 8080
 
-  dind:
-    image: docker:stable-dind
-    privileged: true
+  slides:
+    image: nicholasdille/slides
+    build:
+      context: slides
+    labels:
+      traefik.enable: "true"
+      traefik.frontend.rule: "HostRegexp: slides.{domain:.+}"
+      traefik.port: 80
 
   ide:
     image: nicholasdille/code-container
     build:
-      context: github.com/nicholasdille/code-container
+      context: github.com/nicholasdille/code-container#dind-for-real
     environment:
-      - DOCKER_HOST=tcp://dind:2375
       - EDITOR_CLONE=https://github.com/nicholasdille/Sessions
       - EDITOR_EXTENSIONS=peterjausovec.vscode-docker
+    privileged: true
     labels:
       traefik.enable: "true"
       traefik.frontend.rule: "HostRegexp: ide.{domain:.+}"
@@ -152,10 +148,10 @@ services:
   drone-agent:
     image: drone/agent:1.2
     command: agent
-    depends_on:
-      - drone
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - drone
     environment:
       DRONE_RPC_SERVER: "http://drone"
       DRONE_RPC_SECRET: "${DRONE_SECRET:-mydronesecret}"

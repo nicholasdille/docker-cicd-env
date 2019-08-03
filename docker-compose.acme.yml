@@ -1,0 +1,48 @@
+version: "3.3"
+
+services:
+
+  proxy:
+    image: traefik:1.7
+    command:
+      #- --debug
+      - --accesslog=false
+      - --loglevel=INFO
+      - --entrypoints=Name:api Address::8080 Redirect.Entrypoint:https
+      - --entrypoints=Name:http Address::80 Redirect.Entrypoint:https
+      - --entrypoints=Name:https Address::443 TLS
+      - --defaultentrypoints=http,https
+      - --api
+      - --api.entrypoint=api
+      - --api.dashboard=true
+      - --docker=true
+      - --docker.endpoint=unix:///var/run/docker.sock
+      - --docker.watch=true
+      - --docker.exposedByDefault=false
+      - --docker.domain=go-nerd.de
+      - --acme=true
+      #- --acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --acme.acmelogging=true
+      - --acme.email=${ACME_EMAIL?Variable ACME_EMAIL not set}
+      - --acme.domains=traefik.${DOMAIN?Variable DOMAIN is not set},ide.${DOMAIN?Variable DOMAIN is not set},registry.${DOMAIN?Variable DOMAIN is not set},hub.${DOMAIN?Variable DOMAIN is not set},git.${DOMAIN?Variable DOMAIN is not set},ci.${DOMAIN?Variable DOMAIN is not set},webdav.${DOMAIN?Variable DOMAIN is not set},ops.${DOMAIN?Variable DOMAIN is not set}
+      - --acme.storage=/acme/acme.json
+      - --acme.entrypoint=https
+      - --acme.onhostrule=true
+      - --acme.httpchallenge.entrypoint=http
+      - --metrics.influxdb=true
+      - --metrics.influxdb.protocol=http
+      - --metrics.influxdb.address=http://${INFLUXDB_WRITE_USER:-write}:${INFLUXDB_WRITE_PASS:-write}@influxdb:8086
+      - --metrics.influxdb.database=demo
+      - --metrics.influxdb.retentionpolicy=autogen
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /acme:/acme
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+    labels:
+      traefik.enable: "true"
+      traefik.api.frontend.rule: "HostRegexp: traefik.{domain:.+}"
+      traefik.api.frontend.auth.basic.users: "${TRAEFIK_API_CREDS?Variable TRAEFIK_API_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
+      traefik.api.port: 8080
