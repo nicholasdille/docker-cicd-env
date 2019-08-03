@@ -114,10 +114,7 @@ services:
       ROOT_URL: "https://git.${DOMAIN?Variable DOMAIN is not set}"
       DISABLE_REGISTRATION: "true"
       REQUIRE_SIGNIN_VIEW: "true"
-      SSH_DOMAIN: "git.${DOMAIN?Variable DOMAIN is not set}"
-      SSH_PORT: 2222
-    ports:
-      - "2222:22"
+      DISABLE_SSH: "true"
     volumes:
       - "gitea-data:/data"
     labels:
