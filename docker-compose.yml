@@ -55,10 +55,23 @@ services:
       traefik.frontend.rule: "HostRegexp: slides.{domain:.+}"
       traefik.port: 80
 
-  ide:
-    image: nicholasdille/code-container
+  shell:
+    image: nicholasdille/shellinabox
     build:
-      context: github.com/nicholasdille/code-container#dind-for-real
+      context: shellinabox
+      args:
+        DOCKER_VERSION: stable
+    privileged: true
+    labels:
+      traefik.enable: "true"
+      traefik.frontend.rule: "HostRegexp: shell.{domain:.+}"
+      traefik.frontend.auth.basic.users: "${IDE_CREDS?Variable IDE_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
+      traefik.port: 4200
+
+  ide:
+    image: nicholasdille/code-container:v2
+    build:
+      context: github.com/nicholasdille/code-container#v2-dind-for-real
     environment:
       - EDITOR_CLONE=https://github.com/nicholasdille/Sessions
       - EDITOR_EXTENSIONS=peterjausovec.vscode-docker
