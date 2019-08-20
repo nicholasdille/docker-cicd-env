@@ -27,7 +27,6 @@ services:
       - --docker.endpoint=unix:///var/run/docker.sock
       - --docker.watch=true
       - --docker.exposedByDefault=false
-      - --docker.domain=go-nerd.de
       - --metrics.influxdb=true
       - --metrics.influxdb.protocol=http
       - --metrics.influxdb.address=http://${INFLUXDB_WRITE_USER:-write}:${INFLUXDB_WRITE_PASS:-write}@influxdb:8086
