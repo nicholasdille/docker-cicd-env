@@ -1,0 +1,43 @@
+version: "3.4"
+
+x-function: &shell
+  image: nicholasdille/shellinabox
+  build:
+    context: shellinabox
+    args:
+      DOCKER_VERSION: stable
+  privileged: true
+  labels:
+    traefik.enable: "true"
+    traefik.frontend.rule: "HostRegexp: {service}.{domain:.+}"
+    traefik.frontend.auth.basic.users: "${SHELL_CREDS?Variable SHELL_CREDS not set. Fill with <htpasswd -nbB admin PASS>.}"
+    traefik.port: 4200
+
+services:
+
+  proxy:
+    image: traefik:1.7
+    command:
+      #- --debug
+      - --accesslog=false
+      - --loglevel=INFO
+      - --entrypoints=Name:http Address::80 Redirect.Entrypoint:https
+      - --entrypoints=Name:https Address::443 TLS:/ssl/certificate.crt,/ssl/certificate.key
+      - --defaultentrypoints=http,https
+      - --docker=true
+      - --docker.endpoint=unix:///var/run/docker.sock
+      - --docker.watch=true
+      - --docker.exposedByDefault=false
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /ssl:/ssl
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: always
+
+  shell1:
+    <<: *shell
+
+  shell2:
+    <<: *shell
