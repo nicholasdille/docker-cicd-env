@@ -5,9 +5,10 @@ x-function: &shell
   build:
     context: shellinabox
     args:
-      DOCKER_VERSION: stable
-      ENABLE_SOCKGUARD: false
+      DOCKER_VERSION: "stable"
   privileged: true
+  environment:
+    ENABLE_SOCKGUARD: "false"
   labels:
     traefik.enable: "true"
     traefik.frontend.rule: "HostRegexp: {service}.{domain:.+}"
