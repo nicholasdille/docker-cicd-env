@@ -3,7 +3,7 @@ version: "3.4"
 x-function: &shell
   image: nicholasdille/shellinabox
   build:
-    context: shellinabox
+    context: github.com/nicholasdille/docker-shellinabox
     args:
       DOCKER_VERSION: "stable"
   privileged: true
