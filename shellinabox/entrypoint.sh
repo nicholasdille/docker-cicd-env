@@ -19,4 +19,4 @@ fi
 # Start SIAB
 addgroup ${SHELL_GROUP}
 adduser -D -h /home/${SHELL_USER} -s /bin/bash -G ${SHELL_GROUP} ${SHELL_USER}
-shellinaboxd --disable-ssl --css=/white-on-black.css -s "/:${SHELL_USER}:${SHELL_GROUP}:/:/bin/bash"
+shellinaboxd --disable-ssl --css=/white-on-black.css -s "/:${SHELL_USER}:${SHELL_GROUP}:/:/bin/bash --login"
