@@ -6,6 +6,7 @@ x-function: &shell
     context: shellinabox
     args:
       DOCKER_VERSION: stable
+      ENABLE_SOCKGUARD: false
   privileged: true
   labels:
     traefik.enable: "true"
