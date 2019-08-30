@@ -1,0 +1,22 @@
+version: "3.3"
+
+volumes:
+  clairdb-data:
+
+services:
+
+  clairdb:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: "clair"
+      POSTGRES_USER: "clair"
+      POSTGRES_PASSWORD: "C14!r"
+    volumes:
+      - clairdb-data:/var/lib/postgres/data
+
+  clair:
+    image: nicholasdille/clair
+    build:
+      context: ./clair
+      args:
+        version: v2.0.9
